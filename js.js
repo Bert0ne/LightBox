@@ -1,81 +1,106 @@
-const THUMBNAILS = document.querySelectorAll(".thumbnail img")
-const POPUP = document.querySelector('.popup')
-const POPUP_CLOSE = document.querySelector(".popup__close");
-const POPUP_IMG = document.querySelector(".popup__img");
-const ARROW_LEFT =document.querySelector(".popup__arrow--left")
-const ARROW_RIGHT = document.querySelector(".popup__arrow--right");
+class LightBox {
 
-let currentImgIndex;
+    THUMBNAILS = document.querySelectorAll(".thumbnail img")
+    POPUP = document.querySelector('.popup')
+    POPUP_CLOSE = document.querySelector(".popup__close");
+    POPUP_IMG = document.querySelector(".popup__img");
+    ARROW_LEFT = document.querySelector(".popup__arrow--left")
+    ARROW_RIGHT = document.querySelector(".popup__arrow--right");
+    currentImgIndex;
 
-THUMBNAILS.forEach((thumbnail, index) => {
+    constructor() {
+        this.start();
+        this.closeListeners()
+        this.arrowsListeners()
+    }
 
 
-    const showPopup = (e) => {  
-        POPUP.classList.remove("hidden");
-        POPUP_IMG.src = e.target.src
-        currentImgIndex = index;
-        THUMBNAILS.forEach(el => {
-            el.setAttribute("tabindex", -1)
+    start() {
+        this.THUMBNAILS.forEach((thumbnail, index) => {
+
+
+            const showPopup = (e) => {  
+                this.POPUP.classList.remove("hidden");
+                this.POPUP_IMG.src = e.target.src
+                this.currentImgIndex = index;
+                this.THUMBNAILS.forEach(el => {
+                    el.setAttribute("tabindex", -1)
+                })
+            }
+            thumbnail.addEventListener('click', showPopup)
+            thumbnail.addEventListener('keydown', (e)=> {
+                if(e.code === "Enter") {
+                    showPopup(e)
+                }
+            })
         })
     }
-    thumbnail.addEventListener('click', showPopup)
-    thumbnail.addEventListener('keydown', (e)=> {
-        if(e.code === "Enter") {
-            showPopup(e)
-        }
-    })
-})
 
-const closePopup = function() {
-    POPUP.classList.add("fade-out");
+    closePopup() {
+        this.POPUP.classList.add("fade-out");
+    
+        setTimeout(() => {
+            this.POPUP.classList.add("hidden");
+            this.POPUP.classList.remove("fade-out");
+        }, 300)
+    
+        this.THUMBNAILS.forEach(el => {
+            el.setAttribute("tabindex", 0)
+        })
+    }   
+    
+    showNextImg() {
+        this.currentImgIndex === this.THUMBNAILS.length - 1 ? this.currentImgIndex = 0 : this.currentImgIndex++;
+        this.POPUP_IMG.src = this.THUMBNAILS[this.currentImgIndex].src;
+    }
+    showPrevImg() {
+        this.currentImgIndex === 0 ? this.currentImgIndex = this.THUMBNAILS.length - 1 : this.currentImgIndex--;
+        this.POPUP_IMG.src = this.THUMBNAILS[this.currentImgIndex].src;
+    }
 
-    setTimeout(() => {
-        POPUP.classList.add("hidden");
-        POPUP.classList.remove("fade-out");
-    }, 300)
+    closeListeners() {
+        this.POPUP_CLOSE.addEventListener('click', () => {
+            this.closePopup()
+        })
 
-    THUMBNAILS.forEach(el => {
-        el.setAttribute("tabindex", 0)
-    })
+        this.POPUP.addEventListener('click', (e) => {
+            e.target === this.POPUP ? this.closePopup() : ''
+        });
+    }
+
+    arrowsListeners() {
+        this.ARROW_RIGHT.addEventListener('click', () => {
+            this.showNextImg();
+        })
+        
+        this.ARROW_LEFT.addEventListener('click', () => {
+            this.showPrevImg();
+        })
+        
+        document.addEventListener("keydown", (e) => {
+        
+            if(this.POPUP_IMG.classList.contains('hidden')) return;
+        
+            if (e.key === "ArrowRight") {
+                this.showNextImg()
+            };
+            if (e.key === "ArrowLeft") {
+                this.showPrevImg()
+            };
+            if (e.key === "Escape") {
+                this.closePopup()
+            };
+        });
+    }
+
 }
 
-POPUP_CLOSE.addEventListener('click', () => {
-    closePopup()
+let lightbox = new LightBox()
 
-})
 
-const showNextImg = function() {
-    currentImgIndex === THUMBNAILS.length - 1 ? currentImgIndex = 0 : currentImgIndex++;
-    POPUP_IMG.src = THUMBNAILS[currentImgIndex].src;
-}
-const showPrevImg = function() {
-    currentImgIndex === 0 ? currentImgIndex = THUMBNAILS.length - 1 : currentImgIndex--;
-    POPUP_IMG.src = THUMBNAILS[currentImgIndex].src;
-}
 
-ARROW_RIGHT.addEventListener('click', () => {
-    showNextImg();
-})
 
-ARROW_LEFT.addEventListener('click', () => {
-    showPrevImg();
-})
 
-document.addEventListener("keydown", (e) => {
 
-    if(POPUP_IMG.classList.contains('hidden')) return;
 
-    if (e.key === "ArrowRight") {
-        showNextImg()
-    };
-    if (e.key === "ArrowLeft") {
-        showPrevImg()
-    };
-    if (e.key === "Escape") {
-        closePopup()
-    };
-});
 
-POPUP.addEventListener('click', (e) => {
-    e.target === POPUP ? closePopup() : ''
-});
